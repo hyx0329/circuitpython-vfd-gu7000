@@ -1,7 +1,5 @@
-import microcontroller
-import digitalio
-import busio
 import time
+import serial
 
 
 class ScrollMode:
@@ -40,15 +38,16 @@ class VfdBus:
 		pass
 
 
-class VfdBusUart(VfdBus):
+class VfdBusPySerial(VfdBus):
 	# TODO: deinit
 
-	def __init__(self, tx: microcontroller.Pin, baudrate: int, busy: microcontroller.Pin, reset: microcontroller.Pin, **kwargs) -> None:
-		self.uart = busio.UART(tx=tx, baudrate=baudrate)
-		self.busy_pin = digitalio.DigitalInOut(busy)
-		self.reset_pin = digitalio.DigitalInOut(reset)
-		self.reset_pin.direction = digitalio.Direction.OUTPUT
-		self.reset_pin.value = True  # LOW active
+	def __init__(self, port: str, baudrate: int, **kwargs) -> None:
+		self.uart = serial.Serial()
+		self.uart.baudrate = baudrate
+		self.uart.port = port
+		self.uart.rtscts = True
+		self.uart.open()
+		self.reset()
 
 	def write(self, buf, **kwargs):
 		# must one byte at a time, and check busy signal
@@ -60,11 +59,14 @@ class VfdBusUart(VfdBus):
 			self.uart.write(bytes([i]))
 
 	def is_busy(self) -> bool:
-		return self.busy_pin.value
+		# serial adapter hardware is low active, but the display is the opposite, so need an invert?
+		return not self.uart.cts
 
 	def reset(self) -> None:
-		self.reset_pin.value = False
-		self.reset_pin.value = True
+		self.uart.rts = True  # The reset line, both low active, here is the logic level
+		time.sleep(0.1)
+		self.uart.rts = False
+		time.sleep(0.1)
 
 
 class VfdGu7000:
