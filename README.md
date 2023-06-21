@@ -11,7 +11,8 @@ See `example.py` for actual usage.
 - Not all GU7000s have native support for bit paint. As a workaround, I implemented `fill_rect` and `fill_line` as generic solutions.
 - This lib only implements communication through async serial port(aka. UART) because it's relatively easy to implement. It should be easy to implement for other connection types.
 - For this lib, the major difference between MicroPython and CircuitPython is the serial API. It should be easy to port this lib to MicroPython.
-    - BTW it's also easy to port the lib to CPython.
+    - ~~BTW it's also easy to port the lib to CPython.~~ Already ported, see `for_pyserial`. You'll need an adapter supports CTS/RTS flow control like CH343(with VCP driver, NOT CDC-ACM driver).
+- The image convert tool is in `for_pyserial/vfd_utils.py`. See `for_pyserial/show_img.py` for usage.
 
 ## License
 
